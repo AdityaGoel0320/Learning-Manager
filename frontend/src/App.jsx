@@ -612,11 +612,16 @@ function App() {
 
   return (
     <div className={`relative min-h-screen overflow-hidden transition-all duration-300 ${currentTheme.page}`}>
-      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${currentTheme.pageAccent}`} />
+      <div className={`pointer-events-none absolute inset-0 bg-linear-to-br ${currentTheme.pageAccent}`} />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  {error ? (
+          <div className="mb-6 rounded-2xl border border-rose-300 bg-rose-100 px-4 py-3 text-sm font-medium text-rose-700">
+            {error}
+          </div>
+        ) : null}
+      <div className="flex justify-center items-start flex-wrap lg:flex-nowrap gap-4  mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className={`mb-8 rounded-3xl p-6 shadow-xl ${currentTheme.panel}`}>
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="min-h-[20vh] flex flex-wrap items-start  gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-500">Learning Manager</p>
               <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">SaaS Learning Dashboard</h1>
@@ -651,11 +656,7 @@ function App() {
           </div>
         </div>
 
-        {error ? (
-          <div className="mb-6 rounded-2xl border border-rose-300 bg-rose-100 px-4 py-3 text-sm font-medium text-rose-700">
-            {error}
-          </div>
-        ) : null}
+      
 
         <div className={`mb-8 rounded-3xl p-6 shadow-xl ${currentTheme.panel}`}>
           <h2 className="text-2xl font-bold">Create Learning Card</h2>
@@ -736,7 +737,10 @@ function App() {
           </form>
         </div>
 
-        <div className="space-y-8">
+     
+      </div>
+
+         <div className="lg:p-12 space-y-8">
           {loading ? <p className={currentTheme.infoText}>Loading data...</p> : null}
 
           {!loading && groupedData.length === 0 ? (
@@ -760,7 +764,7 @@ function App() {
                       <button
                         type="button"
                         onClick={() => openTopicEditor(group)}
-                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${currentTheme.muted}`}
+                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition border-2 border-white/30 ${currentTheme.muted}`}
                       >
                         <IconEdit />
                         Manage Topic
@@ -785,73 +789,72 @@ function App() {
                   ) : null}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-3">
                   {items.map((item, index) => (
                     <article key={item._id} className={`${currentTheme.card} rounded-2xl p-4 shadow-sm`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-lg font-bold">
-                          {String.fromCharCode(65 + index)}. {item.subTopic}
-                        </h3>
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-                            item.status === "done" ? currentTheme.badgeDone : currentTheme.badgePending
-                          }`}
-                        >
-                          {item.status.toUpperCase()}
-                        </span>
-                      </div>
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <label className="flex flex-1 cursor-pointer items-start gap-4">
+                          <input
+                            type="checkbox"
+                            checked={item.status === "done"}
+                            onChange={() =>
+                              openConfirmModal({
+                                title: "Update Status",
+                                message: `Change status for ${item.subTopic}?`,
+                                confirmLabel: "Update",
+                                onConfirm: () => toggleStatus(item),
+                              })
+                            }
+                            className="mt-1 h-5 w-5 rounded border-slate-400 text-cyan-500 focus:ring-2 focus:ring-cyan-400"
+                          />
 
-                      <p className={`mt-2 text-xs font-medium ${currentTheme.infoText}`}>Order: {item.orderNumber}</p>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3
+                                className={`text-lg font-bold ${
+                                  item.status === "done" ? "text-emerald-500 line-through decoration-2" : ""
+                                }`}
+                              >
+                                {String.fromCharCode(65 + index)}. {item.subTopic}
+                              </h3>
+                             
+                             
+                            </div>
 
-                      {item.description ? (
-                        <p className={`mt-3 text-sm leading-relaxed ${currentTheme.infoText}`}>{item.description}</p>
-                      ) : (
-                        <p className={`mt-3 text-sm italic ${currentTheme.infoText}`}>No description</p>
-                      )}
+                            {item.description ? (
+                              <p
+                                className={`mt-2 text-sm leading-relaxed ${currentTheme.infoText} ${
+                                  item.status === "done" ? "opacity-80" : ""
+                                }`}
+                              >
+                                {item.description}
+                              </p>
+                            ) : (
+                              <p className={`mt-2 text-sm italic ${currentTheme.infoText}`}>No description</p>
+                            )}
 
-                      <div className={`mt-4 space-y-2 text-xs ${currentTheme.infoText}`}>
-                        <p className="inline-flex items-center gap-1">
-                          <IconClock className="h-3.5 w-3.5" />
-                          Added: {formatTimestamp(item.createdAt)}
-                        </p>
-                        <p className="inline-flex items-center gap-1">
-                          <IconClock className="h-3.5 w-3.5" />
-                          Updated: {formatTimestamp(item.updatedAt)}
-                        </p>
-                      </div>
+                            
+                          </div>
+                        </label>
 
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openConfirmModal({
-                              title: "Update Status",
-                              message: `Change status for ${item.subTopic}?`,
-                              confirmLabel: "Update",
-                              onConfirm: () => toggleStatus(item),
-                            })
-                          }
-                          className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${currentTheme.muted}`}
-                        >
-                          <IconSwap />
-                          Toggle
-                        </button>
+                        <div className="flex flex-wrap gap-2 md:justify-end">
+                          
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openConfirmModal({
-                              title: "Delete Card",
-                              message: `Delete ${item.subTopic}? This cannot be undone.`,
-                              confirmLabel: "Delete",
-                              onConfirm: () => deleteLearningItem(item._id),
-                            })
-                          }
-                          className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${currentTheme.danger}`}
-                        >
-                          <IconTrash />
-                          Delete
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openConfirmModal({
+                                title: "Delete Card",
+                                message: `Delete ${item.subTopic}? This cannot be undone.`,
+                                confirmLabel: "Delete",
+                                onConfirm: () => deleteLearningItem(item._id),
+                              })
+                            }
+                            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${currentTheme.danger}`}
+                          >
+                            <IconTrash />
+                          </button>
+                        </div>
                       </div>
                     </article>
                   ))}
@@ -860,7 +863,6 @@ function App() {
             );
           })}
         </div>
-      </div>
 
       {confirmModal.isOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-blue-950/70 p-4 backdrop-blur-sm">
