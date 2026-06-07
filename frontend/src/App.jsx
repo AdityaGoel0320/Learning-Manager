@@ -129,6 +129,7 @@ function App() {
   const [topics, setTopics] = useState([]);
   const [learningItems, setLearningItems] = useState([]);
   const [newTopic, setNewTopic] = useState("");
+  const [isAddingTopic, setIsAddingTopic] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -342,6 +343,7 @@ function App() {
       setTopics((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
       setForm((prev) => ({ ...prev, topic: created._id }));
       setNewTopic("");
+      setIsAddingTopic(false);
     } catch (err) {
       setError(err.message || "Failed to create topic");
     }
@@ -614,11 +616,11 @@ function App() {
     <div className={`relative min-h-screen overflow-hidden transition-all duration-300 ${currentTheme.page}`}>
       <div className={`pointer-events-none absolute inset-0 bg-linear-to-br ${currentTheme.pageAccent}`} />
 
-  {error ? (
-          <div className="mb-6 rounded-2xl border border-rose-300 bg-rose-100 px-4 py-3 text-sm font-medium text-rose-700">
-            {error}
-          </div>
-        ) : null}
+      {error ? (
+        <div className="mb-6 rounded-2xl border border-rose-300 bg-rose-100 px-4 py-3 text-sm font-medium text-rose-700">
+          {error}
+        </div>
+      ) : null}
       <div className="flex justify-center items-start flex-wrap lg:flex-nowrap gap-4  mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className={`mb-8 rounded-3xl p-6 shadow-xl ${currentTheme.panel}`}>
           <div className="min-h-[20vh] flex flex-wrap items-start  gap-4">
@@ -656,13 +658,14 @@ function App() {
           </div>
         </div>
 
-      
+
 
         <div className={`mb-8 rounded-3xl p-6 shadow-xl ${currentTheme.panel}`}>
           <h2 className="text-2xl font-bold">Create Learning Card</h2>
           <p className={`mt-1 text-sm ${currentTheme.infoText}`}>Add topic or card details with guided numbering.</p>
 
-          <form onSubmit={submitHandler} className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <form onSubmit={submitHandler} className="mt-6 flex flex-col justify-center gap-2 ">
+
             <input
               type="number"
               min="1"
@@ -670,38 +673,71 @@ function App() {
               value={form.orderNumber}
               onChange={(event) => setForm({ ...form, orderNumber: event.target.value })}
               readOnly={isOrderLockedForTopic}
-              className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 ${currentTheme.input}`}
+              className={`w-full rounded-xl border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 ${currentTheme.input}`}
             />
 
-            <select
-              value={form.topic}
-              onChange={(event) => setForm({ ...form, topic: event.target.value })}
-              className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 ${currentTheme.input}`}
-            >
-              <option value="">Select Topic</option>
-              {topics.map((topic) => (
-                <option key={topic._id} value={topic._id}>
-                  {topic.name}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex gap-2 lg:col-span-2">
-              <input
-                value={newTopic}
-                onChange={(event) => setNewTopic(event.target.value)}
-                placeholder="Add New Topic"
+            <div className="flex justify-center items-center gap-2">
+              <select
+                value={form.topic}
+                onChange={(event) => setForm({ ...form, topic: event.target.value })}
                 className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 ${currentTheme.input}`}
-              />
-              <button
-                type="button"
-                onClick={addTopic}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${currentTheme.primary}`}
               >
-                <IconPlus />
-                Add
-              </button>
+                <option value="">Select Topic</option>
+                {topics.map((topic) => (
+                  <option key={topic._id} value={topic._id}>
+                    {topic.name}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex flex-wrap gap-2 lg:col-span-2">
+                {!isAddingTopic ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingTopic(true)}
+                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${currentTheme.primary}`}
+                  >
+                    <IconPlus />
+                  </button>
+                ) : (
+                  <>
+                    <input
+                      value={newTopic}
+                      onChange={(event) => setNewTopic(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          addTopic();
+                        }
+                      }}
+                      placeholder="Enter topic name"
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 ${currentTheme.input}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={addTopic}
+                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${currentTheme.primary}`}
+                    >
+                      <IconPlus />
+                      Save Topic
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingTopic(false);
+                        setNewTopic("");
+                      }}
+                      className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${currentTheme.muted}`}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
+
             </div>
+
+
 
             <input
               placeholder="Sub Topic"
@@ -737,132 +773,133 @@ function App() {
           </form>
         </div>
 
-     
+
       </div>
 
-         <div className="lg:p-12 space-y-8">
-          {loading ? <p className={currentTheme.infoText}>Loading data...</p> : null}
+      <div className="lg:p-12 space-y-8">
+        {loading ? <p className={currentTheme.infoText}>Loading data...</p> : null}
 
-          {!loading && groupedData.length === 0 ? (
-            <div className={`${currentTheme.panel} rounded-3xl p-6`}>
-              <p className={currentTheme.infoText}>No learning cards yet. Add your first one from the form above.</p>
-            </div>
-          ) : null}
+        {!loading && groupedData.length === 0 ? (
+          <div className={`${currentTheme.panel} rounded-3xl p-6`}>
+            <p className={currentTheme.infoText}>No learning cards yet. Add your first one from the form above.</p>
+          </div>
+        ) : null}
 
-          {groupedData.map((group) => {
-            const { topicName, items, topicId, orderNumber } = group;
+        {groupedData.map((group) => {
+          const { topicName, items, topicId, orderNumber } = group;
 
-            return (
-              <section key={topicId} className={`${currentTheme.panel} rounded-3xl p-6 shadow-lg`}>
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-2xl font-black sm:text-3xl">
-                    {orderNumber}. {topicName}
-                  </h2>
+          return (
+            <section key={topicId} className={`${currentTheme.panel} rounded-3xl p-6 shadow-lg`}>
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-2xl font-black sm:text-3xl">
+                  {orderNumber}. {topicName}
+                </h2>
 
-                  {topicId !== "unknown" ? (
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openTopicEditor(group)}
-                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition border-2 border-white/30 ${currentTheme.muted}`}
-                      >
-                        <IconEdit />
-                        Manage Topic
-                      </button>
+                {topicId !== "unknown" ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openTopicEditor(group)}
+                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition border-2 border-white/30 ${currentTheme.muted}`}
+                    >
+                      <IconEdit />
+                      Manage Topic
+                    </button>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openConfirmModal({
-                            title: "Delete Topic",
-                            message: `Delete ${topicName} and all related cards? This cannot be undone.`,
-                            confirmLabel: "Delete Topic",
-                            onConfirm: () => deleteTopic(topicId),
-                          })
-                        }
-                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${currentTheme.danger}`}
-                      >
-                        <IconTrash />
-                        Delete Topic
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openConfirmModal({
+                          title: "Delete Topic",
+                          message: `Delete ${topicName} and all related cards? This cannot be undone.`,
+                          confirmLabel: "Delete Topic",
+                          onConfirm: () => deleteTopic(topicId),
+                        })
+                      }
+                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${currentTheme.danger}`}
+                    >
+                      <IconTrash />
+                      Delete Topic
+                    </button>
+                  </div>
+                ) : null}
+              </div>
 
-                <div className="space-y-3">
-                  {items.map((item, index) => (
-                    <article key={item._id} className={`${currentTheme.card} rounded-2xl p-4 shadow-sm`}>
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <label className="flex flex-1 cursor-pointer items-start gap-4">
-                          <input
-                            type="checkbox"
-                            checked={item.status === "done"}
-                            onChange={() =>
-                              openConfirmModal({
-                                title: "Update Status",
-                                message: `Change status for ${item.subTopic}?`,
-                                confirmLabel: "Update",
-                                onConfirm: () => toggleStatus(item),
-                              })
-                            }
-                            className="mt-1 h-5 w-5 rounded border-slate-400 text-cyan-500 focus:ring-2 focus:ring-cyan-400"
-                          />
+              <div className="space-y-3">
+                {items.map((item, index) => (
+                  <article
+                    key={item._id}
+                    className={`${currentTheme.card} rounded-2xl p-4 shadow-sm transition-all duration-300 ${item.status === "done"
+                      ? "bg-black border border-blue-300/20 backdrop-blur-2xl shadow-black"
+                      : ""
+                      }`}
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <label className="flex flex-1 cursor-pointer items-start gap-4">
+                        <input
+                          type="checkbox"
+                          checked={item.status === "done"}
+                          onChange={() =>
+                            openConfirmModal({
+                              title: "Update Status",
+                              message: `Change status for ${item.subTopic}?`,
+                              confirmLabel: "Update",
+                              onConfirm: () => toggleStatus(item),
+                            })
+                          }
+                          className="mt-1 h-5 w-5 rounded border-slate-400 text-cyan-500 focus:ring-2 focus:ring-cyan-400"
+                        />
 
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3
-                                className={`text-lg font-bold ${
-                                  item.status === "done" ? "text-emerald-500 line-through decoration-2" : ""
-                                }`}
-                              >
-                                {String.fromCharCode(65 + index)}. {item.subTopic}
-                              </h3>
-                             
-                             
-                            </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className={`text-lg font-bold ${item.status === "done" ? "text-cyan-100" : ""}`}>
+                              {item.subTopic}
+                            </h3>
 
-                            {item.description ? (
-                              <p
-                                className={`mt-2 text-sm leading-relaxed ${currentTheme.infoText} ${
-                                  item.status === "done" ? "opacity-80" : ""
-                                }`}
-                              >
-                                {item.description}
-                              </p>
-                            ) : (
-                              <p className={`mt-2 text-sm italic ${currentTheme.infoText}`}>No description</p>
-                            )}
 
-                            
                           </div>
-                        </label>
 
-                        <div className="flex flex-wrap gap-2 md:justify-end">
-                          
+                          {item.description ? (
+                            <p
+                              className={`mt-2 text-sm leading-relaxed ${currentTheme.infoText} ${item.status === "done" ? "text-blue-100 opacity-90" : ""
+                                }`}
+                            >
+                              {item.description}
+                            </p>
+                          ) : (
+                            <p className={`mt-2 text-sm italic ${currentTheme.infoText}`}>No description</p>
+                          )}
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openConfirmModal({
-                                title: "Delete Card",
-                                message: `Delete ${item.subTopic}? This cannot be undone.`,
-                                confirmLabel: "Delete",
-                                onConfirm: () => deleteLearningItem(item._id),
-                              })
-                            }
-                            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${currentTheme.danger}`}
-                          >
-                            <IconTrash />
-                          </button>
+
                         </div>
+                      </label>
+
+                      <div className="flex flex-wrap gap-2 md:justify-end">
+
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openConfirmModal({
+                              title: "Delete Card",
+                              message: `Delete ${item.subTopic}? This cannot be undone.`,
+                              confirmLabel: "Delete",
+                              onConfirm: () => deleteLearningItem(item._id),
+                            })
+                          }
+                          className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${currentTheme.danger}`}
+                        >
+                          <IconTrash />
+                        </button>
                       </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-        </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
 
       {confirmModal.isOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-blue-950/70 p-4 backdrop-blur-sm">
