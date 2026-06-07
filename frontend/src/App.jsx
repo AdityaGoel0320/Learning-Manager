@@ -660,7 +660,7 @@ function App() {
 
 
 
-        <div className={`border-4 lg:w-[60%] mb-8 rounded-3xl p-6 shadow-xl ${currentTheme.panel}`}>
+        <div className={`lg:w-[60%] mb-8 rounded-3xl p-6 shadow-xl ${currentTheme.panel}`}>
           <h2 className="text-2xl font-bold">Create Learning Card</h2>
           <p className={`mt-1 text-sm ${currentTheme.infoText}`}>Add topic or card details with guided numbering.</p>
 
